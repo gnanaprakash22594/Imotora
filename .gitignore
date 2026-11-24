@@ -6,7 +6,10 @@ node_modules/
 
 # Build & framework caches
 .next/
+.open-next/
+.wrangler/
 .medusa/
+.dev.vars
 dist/
 build/
 out/
@@ -27,3 +30,4 @@ Thumbs.db
 
 # Generated raw asset staging folder (public/images holds the storefront assets)
 assets/
+
