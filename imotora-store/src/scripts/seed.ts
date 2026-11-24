@@ -321,7 +321,8 @@ export default async function seedImotoraData({ container }: ExecArgs) {
     },
   });
 
-  let publishableApiKey = existingKeys?.[0];
+  let publishableApiKey: { id: string; token?: string } | undefined =
+    existingKeys?.[0];
 
   if (!publishableApiKey) {
     const {
