@@ -1,0 +1,12 @@
+{
+  "login": {
+    "title": "iMotora Admin Portal",
+    "hint": "Sign in to manage die-cast inventory, orders & drops"
+  },
+  "invite": {
+    "title": "Welcome to iMotora",
+    "successHint": "Get started with iMotora Admin right away.",
+    "successAction": "Start iMotora Admin"
+  }
+}
+

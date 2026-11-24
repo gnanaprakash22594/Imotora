@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: imotora-medusa-backend
+    runtime: node
+    region: singapore
+    plan: free
+    rootDir: imotora-store
+    buildCommand: npm install && npm run build
+    startCommand: npx medusa db:migrate && npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "9000"
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECRET
+        generateValue: true
+      - key: STORE_CORS
+        value: https://your-storefront.vercel.app,http://localhost:3000
+      - key: ADMIN_CORS
+        value: https://imotora-medusa-backend.onrender.com,http://localhost:9000
+      - key: AUTH_CORS
+        value: https://your-storefront.vercel.app,https://imotora-medusa-backend.onrender.com,http://localhost:3000,http://localhost:9000
+      - key: MEDUSA_BACKEND_URL
+        value: https://imotora-medusa-backend.onrender.com
+      - key: STOREFRONT_URL
+        value: https://your-storefront.vercel.app

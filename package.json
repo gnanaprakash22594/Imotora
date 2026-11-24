@@ -1,0 +1,12 @@
+{
+  "name": "imotora-monorepo",
+  "private": true,
+  "scripts": {
+    "db:start": "\"C:\\Program Files\\PostgreSQL\\16\\bin\\pg_ctl.exe\" -D \"D:\\Projects\\Imotora\\.pgdata\" -o \"-p 5433\" -l \"D:\\Projects\\Imotora\\.pgdata\\postgres.log\" start",
+    "db:stop": "\"C:\\Program Files\\PostgreSQL\\16\\bin\\pg_ctl.exe\" -D \"D:\\Projects\\Imotora\\.pgdata\" stop",
+    "db:migrate": "npm --prefix imotora-store exec medusa db:migrate",
+    "db:seed": "npm --prefix imotora-store run seed",
+    "dev:backend": "npm --prefix imotora-store run dev",
+    "dev:storefront": "npm --prefix imotora-store-storefront run dev"
+  }
+}

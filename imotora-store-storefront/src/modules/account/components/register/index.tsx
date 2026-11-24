@@ -1,0 +1,96 @@
+"use client"
+
+import { useActionState } from "react"
+import Input from "@modules/common/components/input"
+import { LOGIN_VIEW } from "@modules/account/templates/login-template"
+import ErrorMessage from "@modules/checkout/components/error-message"
+import { SubmitButton } from "@modules/checkout/components/submit-button"
+import LocalizedClientLink from "@modules/common/components/localized-client-link"
+import { signup } from "@lib/data/customer"
+
+type Props = {
+  setCurrentView: (view: LOGIN_VIEW) => void
+}
+
+const Register = ({ setCurrentView }: Props) => {
+  const [message, formAction] = useActionState(signup, null)
+
+  return (
+    <div className="w-full flex flex-col items-center" data-testid="register-page">
+      <form className="w-full flex flex-col" action={formAction}>
+        <div className="flex flex-col w-full gap-y-2.5">
+          <div className="grid grid-cols-2 gap-2.5">
+            <Input
+              label="First name"
+              name="first_name"
+              required
+              autoComplete="given-name"
+              data-testid="first-name-input"
+            />
+            <Input
+              label="Last name"
+              name="last_name"
+              required
+              autoComplete="family-name"
+              data-testid="last-name-input"
+            />
+          </div>
+          <Input
+            label="Email"
+            name="email"
+            required
+            type="email"
+            autoComplete="email"
+            data-testid="email-input"
+          />
+          <Input
+            label="Phone (+91)"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            data-testid="phone-input"
+          />
+          <Input
+            label="Password"
+            name="password"
+            required
+            type="password"
+            autoComplete="new-password"
+            data-testid="password-input"
+          />
+        </div>
+        <ErrorMessage error={message} data-testid="register-error" />
+        <span className="text-center text-zinc-500 text-[11px] mt-4 leading-relaxed">
+          By creating an account, you agree to iMotora&apos;s{" "}
+          <LocalizedClientLink href="/policies/privacy" className="underline text-zinc-800">
+            Privacy Policy
+          </LocalizedClientLink>{" "}
+          and{" "}
+          <LocalizedClientLink href="/policies/terms" className="underline text-zinc-800">
+            Terms &amp; Conditions
+          </LocalizedClientLink>
+          .
+        </span>
+        <SubmitButton
+          className="w-full mt-5 h-10 font-bold text-white border-none"
+          style={{ backgroundColor: "var(--imotora-red)" }}
+          data-testid="register-button"
+        >
+          Create iMotora Account
+        </SubmitButton>
+      </form>
+      <span className="text-center text-zinc-600 text-xs mt-5">
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={() => setCurrentView(LOGIN_VIEW.SIGN_IN)}
+          className="font-bold underline text-[#0D0D10] hover:text-[var(--imotora-red)]"
+        >
+          Sign in
+        </button>
+      </span>
+    </div>
+  )
+}
+
+export default Register
