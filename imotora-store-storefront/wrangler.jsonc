@@ -7,6 +7,13 @@
     "nodejs_compat",
     "global_fetch_strictly_public"
   ],
+  "keep_vars": true,
+  "vars": {
+    "MEDUSA_BACKEND_URL": "https://imotora-medusa-backend.onrender.com",
+    "NEXT_PUBLIC_BASE_URL": "https://imotora.gnanaprakash22594.workers.dev",
+    "NEXT_PUBLIC_DEFAULT_REGION": "in",
+    "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_a5a06cc76e1e1399b34dd3d8c70704e7cc8ddc29a4a47ba2600ee31497a80754"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"

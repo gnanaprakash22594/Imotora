@@ -1,10 +1,6 @@
 import { HttpTypes } from "@medusajs/types"
 import { NextRequest, NextResponse } from "next/server"
 
-const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
-const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "us"
-
 const regionMapCache = {
   regionMap: new Map<string, HttpTypes.StoreRegion>(),
   regionMapUpdated: Date.now(),
@@ -12,6 +8,8 @@ const regionMapCache = {
 
 async function getRegionMap(cacheId: string) {
   const { regionMap, regionMapUpdated } = regionMapCache
+  const BACKEND_URL = process.env.MEDUSA_BACKEND_URL
+  const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
 
   if (!BACKEND_URL) {
     throw new Error(
@@ -23,7 +21,7 @@ async function getRegionMap(cacheId: string) {
     !regionMap.keys().next().value ||
     regionMapUpdated < Date.now() - 3600 * 1000
   ) {
-    // Fetch regions from Medusa. We can't use the JS client here because middleware is running on Edge and the client needs a Node environment.
+    // Fetch regions from Medusa. Avoid `cache: "force-cache"` for Cloudflare Workers compatibility.
     const { regions } = await fetch(`${BACKEND_URL}/store/regions`, {
       headers: {
         "x-publishable-api-key": PUBLISHABLE_API_KEY!,
@@ -32,12 +30,17 @@ async function getRegionMap(cacheId: string) {
         revalidate: 3600,
         tags: [`regions-${cacheId}`],
       },
-      cache: "force-cache",
     }).then(async (response) => {
-      const json = await response.json()
+      const text = await response.text()
+      let json: any = {}
+      try {
+        json = JSON.parse(text)
+      } catch {
+        throw new Error(`Invalid JSON from ${BACKEND_URL}/store/regions (status ${response.status})`)
+      }
 
       if (!response.ok) {
-        throw new Error(json.message)
+        throw new Error(json.message || `Failed to fetch regions (${response.status})`)
       }
 
       return json
@@ -73,6 +76,7 @@ async function getCountryCode(
 ) {
   try {
     let countryCode
+    const DEFAULT_REGION = process.env.NEXT_PUBLIC_DEFAULT_REGION || "in"
 
     const vercelCountryCode = request.headers
       .get("x-vercel-ip-country")
