@@ -5,10 +5,12 @@ services:
     region: singapore
     plan: free
     rootDir: imotora-store
-    buildCommand: npm install && npm run build && cd .medusa/server && npm install --omit=dev
+    buildCommand: npm install --include=dev && npm run build && cd .medusa/server && npm install --omit=dev
     startCommand: cd .medusa/server && npx medusa db:migrate && npx medusa start
     healthCheckPath: /health
     envVars:
+      - key: NODE_VERSION
+        value: 22.20.0
       - key: NODE_ENV
         value: production
       - key: PORT
