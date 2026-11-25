@@ -77,31 +77,31 @@ export default function Hero() {
         </div>
       ))}
 
-      <div className="relative z-10 content-container h-full flex flex-col justify-center">
+      <div className="relative z-10 content-container h-full flex flex-col justify-center pb-10 sm:pb-8 md:px-14">
         <div className="max-w-xl">
-          <p className="font-racing text-2xl sm:text-3xl font-bold text-white/95 leading-tight drop-shadow">
+          <p className="font-racing text-xl sm:text-3xl font-bold text-white/95 leading-tight drop-shadow">
             {slide.kicker}
           </p>
-          <h1 className="font-racing text-4xl sm:text-6xl lg:text-[66px] font-black leading-[0.98] tracking-tight mt-1 drop-shadow-lg">
+          <h1 className="font-racing text-[36px] sm:text-6xl lg:text-[66px] font-black leading-[0.98] tracking-tight mt-1 drop-shadow-lg">
             <span className="text-white block">{slide.titleWhite}</span>
             <span className="block" style={{ color: "var(--imotora-red)" }}>
               {slide.titleRed}
             </span>
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-zinc-200 font-medium tracking-wide">
+          <p className="mt-3 sm:mt-4 text-xs sm:text-base text-zinc-200 font-medium tracking-wide leading-relaxed">
             {slide.subtitle}
           </p>
-          <div className="mt-7 flex flex-wrap items-center gap-3">
+          <div className="mt-6 sm:mt-7 flex flex-wrap items-center gap-2.5 sm:gap-3">
             <LocalizedClientLink
               href={slide.ctaHref}
-              className="imotora-btn-primary px-6 py-3 text-sm sm:text-base shadow-lg"
+              className="imotora-btn-primary px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base shadow-lg"
             >
               {slide.ctaLabel}
               <span aria-hidden="true">→</span>
             </LocalizedClientLink>
             <LocalizedClientLink
               href="/store"
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-md bg-white text-[#0D0D10] hover:bg-zinc-100 font-bold text-sm sm:text-base transition-colors"
+              className="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-md bg-white text-[#0D0D10] hover:bg-zinc-100 font-bold text-sm sm:text-base transition-colors"
             >
               Shop All Models
             </LocalizedClientLink>
@@ -109,12 +109,12 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Left / Right Arrows */}
+      {/* Left / Right Arrows — desktop/tablet only so they never cover mobile text */}
       <button
         type="button"
         onClick={prevSlide}
         aria-label="Previous slide"
-        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-[var(--imotora-red)] border border-white/20 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
+        className="hidden md:flex absolute left-4 lg:left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-[var(--imotora-red)] border border-white/20 text-white items-center justify-center transition-colors backdrop-blur-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -124,27 +124,49 @@ export default function Hero() {
         type="button"
         onClick={nextSlide}
         aria-label="Next slide"
-        className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-[var(--imotora-red)] border border-white/20 text-white flex items-center justify-center transition-colors backdrop-blur-sm"
+        className="hidden md:flex absolute right-4 lg:right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 hover:bg-[var(--imotora-red)] border border-white/20 text-white items-center justify-center transition-colors backdrop-blur-sm"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
         </svg>
       </button>
 
-      {/* Pagination Dots */}
-      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        {HERO_SLIDES.map((s, idx) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setActive(idx)}
-            aria-label={`Go to slide ${idx + 1}`}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              idx === active ? "w-7" : "w-2 bg-white/50 hover:bg-white/85"
-            }`}
-            style={idx === active ? { backgroundColor: "var(--imotora-red)" } : undefined}
-          />
-        ))}
+      {/* Pagination Dots (+ compact mobile prev/next controls at bottom) */}
+      <div className="absolute bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={prevSlide}
+          aria-label="Previous slide"
+          className="md:hidden w-7 h-7 rounded-full bg-black/50 border border-white/20 text-white flex items-center justify-center"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.4} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div className="flex items-center gap-2">
+          {HERO_SLIDES.map((s, idx) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setActive(idx)}
+              aria-label={`Go to slide ${idx + 1}`}
+              className={`h-2 rounded-full transition-all duration-300 ${
+                idx === active ? "w-7" : "w-2 bg-white/50 hover:bg-white/85"
+              }`}
+              style={idx === active ? { backgroundColor: "var(--imotora-red)" } : undefined}
+            />
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={nextSlide}
+          aria-label="Next slide"
+          className="md:hidden w-7 h-7 rounded-full bg-black/50 border border-white/20 text-white flex items-center justify-center"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth={2.4} viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </section>
   )

@@ -28,8 +28,8 @@ const CartTemplate = ({
         </div>
 
         {cart?.items?.length ? (
-          <div className="grid grid-cols-1 small:grid-cols-[1fr_380px] gap-8 items-start">
-            <div className="flex flex-col bg-white text-zinc-900 rounded-2xl p-6 gap-y-6 shadow-md border border-zinc-200">
+          <div className="grid grid-cols-1 small:grid-cols-[1fr_380px] gap-6 sm:gap-8 items-start">
+            <div className="flex flex-col bg-white text-zinc-900 rounded-2xl p-4 sm:p-6 gap-y-5 sm:gap-y-6 shadow-md border border-zinc-200 overflow-hidden min-w-0">
               {!customer && (
                 <>
                   <SignInPrompt />
@@ -38,10 +38,10 @@ const CartTemplate = ({
               )}
               <ItemsTemplate cart={cart} />
             </div>
-            <div className="relative">
+            <div className="relative min-w-0">
               <div className="flex flex-col gap-y-6 sticky top-28">
                 {cart && cart.region && (
-                  <div className="bg-white text-zinc-900 rounded-2xl p-6 shadow-md border border-zinc-200">
+                  <div className="bg-white text-zinc-900 rounded-2xl p-4 sm:p-6 shadow-md border border-zinc-200">
                     <Summary cart={cart as any} />
                   </div>
                 )}

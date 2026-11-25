@@ -70,56 +70,60 @@ const MobileActions: React.FC<MobileActionsProps> = ({
           leaveTo="opacity-0"
         >
           <div
-            className="bg-white flex flex-col gap-y-3 justify-center items-center text-large-regular p-4 h-full w-full border-t border-gray-200"
+            className="bg-white/95 backdrop-blur-md flex flex-col gap-y-2.5 justify-center items-center p-3.5 h-full w-full border-t border-zinc-200 shadow-[0_-6px_20px_rgba(0,0,0,0.08)]"
             data-testid="mobile-actions"
           >
-            <div className="flex items-center gap-x-2">
-              <span data-testid="mobile-title">{product.title}</span>
-              <span>—</span>
+            <div className="flex items-center justify-between gap-x-3 w-full">
+              <span
+                data-testid="mobile-title"
+                className="text-sm font-bold text-zinc-900 truncate"
+              >
+                {product.title}
+              </span>
               {selectedPrice ? (
-                <div className="flex items-end gap-x-2 text-ui-fg-base">
+                <div className="flex items-baseline gap-x-1.5 text-zinc-900 shrink-0">
                   {selectedPrice.price_type === "sale" && (
-                    <p>
-                      <span className="line-through text-small-regular">
-                        {selectedPrice.original_price}
-                      </span>
-                    </p>
+                    <span className="line-through text-xs text-zinc-400">
+                      {selectedPrice.original_price}
+                    </span>
                   )}
                   <span
-                    className={clx({
-                      "text-ui-fg-interactive":
+                    className={clx("text-sm font-extrabold", {
+                      "text-[var(--imotora-red)]":
                         selectedPrice.price_type === "sale",
                     })}
                   >
                     {selectedPrice.calculated_price}
                   </span>
                 </div>
-              ) : (
-                <div></div>
-              )}
+              ) : null}
             </div>
-            <div className={clx("grid grid-cols-2 w-full gap-x-4", {
-              "!grid-cols-1": isSimple
-            })}>
-              {!isSimple && <Button
-                onClick={open}
-                variant="secondary"
-                className="w-full"
-                data-testid="mobile-actions-button"
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span>
-                    {variant
-                      ? Object.values(options).join(" / ")
-                      : "Select Options"}
-                  </span>
-                  <ChevronDown />
-                </div>
-              </Button>}
+            <div
+              className={clx("grid grid-cols-2 w-full gap-x-2.5", {
+                "!grid-cols-1": isSimple,
+              })}
+            >
+              {!isSimple && (
+                <Button
+                  onClick={open}
+                  variant="secondary"
+                  className="w-full h-10 text-xs font-semibold"
+                  data-testid="mobile-actions-button"
+                >
+                  <div className="flex items-center justify-between w-full gap-1">
+                    <span className="truncate">
+                      {variant
+                        ? Object.values(options).join(" / ")
+                        : "Select Options"}
+                    </span>
+                    <ChevronDown />
+                  </div>
+                </Button>
+              )}
               <Button
                 onClick={handleAddToCart}
                 disabled={!inStock || !variant}
-                className="w-full"
+                className="w-full h-10 text-xs font-bold !bg-[var(--imotora-red)] hover:!bg-[var(--imotora-red-hover)] !text-white !border-0"
                 isLoading={isAdding}
                 data-testid="mobile-cart-button"
               >

@@ -65,6 +65,7 @@ body {
   background-color: var(--page-bg);
   color: var(--text-main);
   scroll-behavior: smooth;
+  overflow-x: clip;
   transition: background-color 220ms ease, color 220ms ease;
 }
 

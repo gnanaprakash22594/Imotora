@@ -13,9 +13,9 @@ export default function ThemeExplorer() {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="fixed bottom-5 right-5 z-[60]">
+    <div className="fixed bottom-24 right-3 sm:bottom-5 sm:right-5 z-[55]">
       {open && (
-        <div className="mb-3 w-[310px] rounded-2xl bg-white text-zinc-900 border border-zinc-200 shadow-2xl overflow-hidden animate-fade-in-top">
+        <div className="mb-3 w-[calc(100vw-24px)] max-w-[310px] rounded-2xl bg-white text-zinc-900 border border-zinc-200 shadow-2xl overflow-hidden animate-fade-in-top">
           <div className="px-4 py-3 bg-[#0D0D10] text-white flex items-center justify-between">
             <div>
               <p className="text-xs font-extrabold uppercase tracking-wider">
@@ -111,14 +111,15 @@ export default function ThemeExplorer() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#0D0D10] hover:bg-black text-white text-xs font-bold shadow-xl border border-white/15 transition-all active:scale-95"
+        aria-label="Explore Colors"
+        className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-full bg-[#0D0D10]/95 hover:bg-black text-white text-xs font-bold shadow-xl border border-white/15 transition-all active:scale-95"
       >
         <span className="flex items-center -space-x-1">
           <span className="w-3.5 h-3.5 rounded-full bg-[var(--imotora-red)] border border-white/60" />
           <span className="w-3.5 h-3.5 rounded-full bg-white border border-zinc-400" />
           <span className="w-3.5 h-3.5 rounded-full bg-[#18181F] border border-white/60" />
         </span>
-        <span>Explore Colors</span>
+        <span className="hidden sm:inline">Explore Colors</span>
       </button>
     </div>
   )

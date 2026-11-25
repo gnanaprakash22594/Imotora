@@ -18,9 +18,15 @@ type ItemProps = {
   item: HttpTypes.StoreCartLineItem
   type?: "full" | "preview"
   currencyCode: string
+  layout?: "table" | "card"
 }
 
-const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
+const Item = ({
+  item,
+  type = "full",
+  currencyCode,
+  layout = "table",
+}: ItemProps) => {
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -43,6 +49,70 @@ const Item = ({ item, type = "full", currencyCode }: ItemProps) => {
   // TODO: Update this to grab the actual max inventory
   const maxQtyFromInventory = 10
   const maxQuantity = item.variant?.manage_inventory ? 10 : maxQtyFromInventory
+
+  if (layout === "card") {
+    return (
+      <div className="py-4 flex gap-3.5 items-start w-full" data-testid="product-row">
+        <LocalizedClientLink
+          href={`/products/${item.product_handle}`}
+          className="w-20 h-20 shrink-0 block"
+        >
+          <Thumbnail
+            thumbnail={item.thumbnail}
+            images={item.variant?.product?.images}
+            size="square"
+          />
+        </LocalizedClientLink>
+
+        <div className="flex-1 min-w-0 flex flex-col justify-between gap-2.5">
+          <div>
+            <LocalizedClientLink
+              href={`/products/${item.product_handle}`}
+              className="text-sm font-bold text-zinc-900 hover:text-[var(--imotora-red)] leading-snug block"
+              data-testid="product-title"
+            >
+              {item.product_title}
+            </LocalizedClientLink>
+            <div className="mt-0.5 text-xs text-zinc-500">
+              <LineItemOptions variant={item.variant} data-testid="product-variant" />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-2 pt-1">
+            <div className="flex items-center gap-2">
+              <DeleteButton id={item.id} data-testid="product-delete-button" />
+              <CartItemSelect
+                value={item.quantity}
+                onChange={(value) => changeQuantity(parseInt(value.target.value))}
+                className="w-14 h-9 p-2"
+                data-testid="product-select-button"
+              >
+                {Array.from(
+                  { length: Math.min(maxQuantity, 10) },
+                  (_, i) => (
+                    <option value={i + 1} key={i + 1}>
+                      {i + 1}
+                    </option>
+                  )
+                )}
+              </CartItemSelect>
+              {updating && <Spinner />}
+            </div>
+
+            <div className="shrink-0 text-right font-bold text-zinc-900">
+              <LineItemPrice
+                item={item}
+                style="tight"
+                currencyCode={currencyCode}
+              />
+            </div>
+          </div>
+
+          <ErrorMessage error={error} data-testid="product-error-message" />
+        </div>
+      </div>
+    )
+  }
 
   return (
     <Table.Row className="w-full" data-testid="product-row">

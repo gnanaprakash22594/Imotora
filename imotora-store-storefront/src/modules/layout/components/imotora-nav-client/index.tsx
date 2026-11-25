@@ -96,9 +96,11 @@ export default function ImotoraNavClient({
               />
             </svg>
             <span className="truncate">
-              Free Shipping on orders above <strong className="font-bold">₹999</strong>
-              <span className="mx-2 opacity-75">|</span>
-              New Arrivals &amp; <strong className="font-semibold">Pre-Orders Open Now!</strong>
+              Free Shipping above <strong className="font-bold">₹999</strong>
+              <span className="hidden sm:inline">
+                <span className="mx-2 opacity-75">|</span>
+                New Arrivals &amp; <strong className="font-semibold">Pre-Orders Open Now!</strong>
+              </span>
             </span>
           </div>
           <LocalizedClientLink
@@ -112,7 +114,7 @@ export default function ImotoraNavClient({
 
       {/* Main Header — Pure Crisp White behind the Official iMotora Logo */}
       <header className="bg-white/95 backdrop-blur-md border-b border-zinc-200">
-        <nav className="content-container flex items-center justify-between h-[76px] gap-4">
+        <nav className="content-container flex items-center justify-between h-[66px] sm:h-[76px] gap-2 sm:gap-4">
           {/* Brand Logo on Clean White */}
           <LocalizedClientLink
             href="/"
@@ -122,9 +124,9 @@ export default function ImotoraNavClient({
             <img
               src="/images/imotora-logo.png"
               alt="iMotora"
-              className="h-10 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+              className="h-8 sm:h-11 w-auto object-contain transition-transform duration-200 group-hover:scale-[1.03]"
             />
-            <span className="text-[8.5px] sm:text-[9.5px] font-bold tracking-[0.22em] text-zinc-700 uppercase mt-0.5 pl-1">
+            <span className="text-[7.5px] sm:text-[9.5px] font-bold tracking-[0.2em] sm:tracking-[0.22em] text-zinc-700 uppercase mt-0.5 pl-0.5 sm:pl-1">
               COLLECT &bull; RACE &bull; DISPLAY
             </span>
           </LocalizedClientLink>

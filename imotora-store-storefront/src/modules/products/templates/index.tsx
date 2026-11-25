@@ -34,7 +34,7 @@ const ProductTemplate: React.FC<ProductTemplateProps> = ({
 
   return (
     <div
-      className="py-8 transition-colors"
+      className="py-6 sm:py-8 pb-24 lg:pb-8 transition-colors"
       style={{ backgroundColor: "var(--section-alt-bg)" }}
     >
       {/* Breadcrumb */}

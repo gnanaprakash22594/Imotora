@@ -35,13 +35,44 @@ const SortProducts = ({
   }
 
   return (
-    <FilterRadioGroup
-      title="Sort by"
-      items={sortOptions}
-      value={sortBy}
-      handleChange={handleChange}
-      data-testid={dataTestId}
-    />
+    <>
+      {/* Compact horizontal pill bar on mobile */}
+      <div className="small:hidden flex flex-col gap-2" data-testid={dataTestId}>
+        <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+          Sort by
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {sortOptions.map((item) => {
+            const active = sortBy === item.value
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => handleChange(item.value as SortOptions)}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
+                  active
+                    ? "bg-[#0D0D10] text-white border-[#0D0D10]"
+                    : "bg-zinc-50 text-zinc-700 border-zinc-200 hover:border-zinc-400"
+                }`}
+              >
+                {item.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Sidebar radio list on desktop */}
+      <div className="hidden small:block">
+        <FilterRadioGroup
+          title="Sort by"
+          items={sortOptions}
+          value={sortBy}
+          handleChange={handleChange}
+          data-testid={dataTestId}
+        />
+      </div>
+    </>
   )
 }
 
