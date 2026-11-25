@@ -43,11 +43,13 @@ export default function ImotoraNavClient({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const q = searchQuery.trim()
+    const prefix =
+      countryCode && countryCode.toLowerCase() !== "in" ? `/${countryCode}` : ""
     if (q) {
-      router.push(`/${countryCode}/store?q=${encodeURIComponent(q)}`)
+      router.push(`${prefix}/store?q=${encodeURIComponent(q)}`)
       setMobileMenuOpen(false)
     } else {
-      router.push(`/${countryCode}/store`)
+      router.push(`${prefix}/store`)
     }
   }
 

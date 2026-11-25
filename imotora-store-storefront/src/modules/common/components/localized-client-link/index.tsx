@@ -8,6 +8,10 @@ import React from "react"
  * Use this component to create a Next.js `<Link />` that persists the current country code in the url,
  * without having to explicitly pass it as a prop.
  */
+const DEFAULT_REGION = (
+  process.env.NEXT_PUBLIC_DEFAULT_REGION || "in"
+).toLowerCase()
+
 const LocalizedClientLink = ({
   children,
   href,
@@ -21,9 +25,15 @@ const LocalizedClientLink = ({
   [x: string]: any
 }) => {
   const { countryCode } = useParams()
+  const code = (typeof countryCode === "string" ? countryCode : "").toLowerCase()
+  const normalizedHref = href.startsWith("/") ? href : `/${href}`
+  const targetHref =
+    !code || code === DEFAULT_REGION
+      ? normalizedHref
+      : `/${code}${normalizedHref}`
 
   return (
-    <Link href={`/${countryCode}${href}`} {...props}>
+    <Link href={targetHref} {...props}>
       {children}
     </Link>
   )
