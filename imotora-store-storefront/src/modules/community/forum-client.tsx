@@ -8,9 +8,12 @@ import {
   createForumThread,
   getForumThread,
   postForumReply,
-  registerCommunityMember,
   upvoteForumThread,
 } from "@lib/data/community"
+import CommunityProfileForm, {
+  INTEREST_OPTIONS,
+  MEMBER_CATEGORIES,
+} from "./community-profile-form"
 
 const CATEGORIES = [
   "All",
@@ -19,54 +22,6 @@ const CATEGORIES = [
   "Pre-Order Watch",
   "Display & DIY Tracks",
   "Buy / Trade / ISO",
-]
-
-const MEMBER_CATEGORIES = [
-  "Hobbyist",
-  "Collector",
-  "Wholesaler",
-  "Retailer",
-  "Track Builder",
-  "Reseller / Trader",
-]
-
-const INTEREST_OPTIONS = [
-  "1:64 Die-Cast",
-  "1:43 F1 & Motorsport",
-  "1:18 Scale Models",
-  "Racing Tracks",
-  "LED Displays & Dioramas",
-  "Vintage & Classics",
-  "Bulk / Wholesale",
-]
-
-const INDIAN_STATES = [
-  "Andhra Pradesh",
-  "Assam",
-  "Bihar",
-  "Chandigarh",
-  "Chhattisgarh",
-  "Delhi",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jammu & Kashmir",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Odisha",
-  "Puducherry",
-  "Punjab",
-  "Rajasthan",
-  "Tamil Nadu",
-  "Telangana",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-  "Other / International",
 ]
 
 export default function ForumClient({
@@ -86,21 +41,7 @@ export default function ForumClient({
   const [stats, setStats] = useState<CommunityStats | null>(initialStats)
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [search, setSearch] = useState("")
-
-  // Community Member Profile Form State
-  const [showProfileForm, setShowProfileForm] = useState(false)
-  const [memberName, setMemberName] = useState(defaultAuthor || "")
-  const [memberType, setMemberType] = useState("Hobbyist")
-  const [memberPhone, setMemberPhone] = useState(defaultPhone || "")
-  const [memberEmail, setMemberEmail] = useState(defaultEmail || "")
-  const [memberCity, setMemberCity] = useState("")
-  const [memberState, setMemberState] = useState("Maharashtra")
-  const [memberInterests, setMemberInterests] = useState<string[]>([
-    "1:64 Die-Cast",
-  ])
-  const [submittingProfile, setSubmittingProfile] = useState(false)
-  const [profileError, setProfileError] = useState<string | null>(null)
-  const [profileSuccess, setProfileSuccess] = useState<string | null>(null)
+  const [showProfileForm, setShowProfileForm] = useState(true)
 
   // New Thread Modal State
   const [showNewModal, setShowNewModal] = useState(false)
@@ -133,7 +74,6 @@ export default function ForumClient({
     })
   }, [threads, selectedCategory, search])
 
-  // Live computed activity fallback if backend stats are still warming up
   const liveActivity = useMemo(() => {
     const threadReplies = threads.reduce((acc, t) => acc + (t.reply_count || 0), 0)
     const threadUpvotes = threads.reduce((acc, t) => acc + (t.upvotes || 0), 0)
@@ -155,53 +95,6 @@ export default function ForumClient({
     ...(stats?.byInterest.map((i) => i.count) || [1]),
     1
   )
-
-  const toggleInterest = (interest: string) => {
-    setMemberInterests((prev) =>
-      prev.includes(interest)
-        ? prev.filter((item) => item !== interest)
-        : [...prev, interest]
-    )
-  }
-
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProfileError(null)
-    setProfileSuccess(null)
-
-    if (!memberInterests.length) {
-      setProfileError("Please select at least one interest.")
-      return
-    }
-
-    setSubmittingProfile(true)
-    const res = await registerCommunityMember({
-      full_name: memberName.trim(),
-      member_type: memberType,
-      phone: memberPhone.trim(),
-      email: memberEmail.trim(),
-      city: memberCity.trim(),
-      state: memberState,
-      interests: memberInterests,
-    })
-    setSubmittingProfile(false)
-
-    if (!res.ok) {
-      setProfileError(res.error || "Could not save your profile. Please try again.")
-      return
-    }
-
-    if (res.stats) {
-      setStats(res.stats)
-    }
-    if (memberName.trim()) {
-      setNewAuthor(memberName.trim())
-      setReplyAuthor(memberName.trim())
-    }
-    setProfileSuccess(
-      `Welcome ${memberName.trim()}! You're registered as a ${memberType} from ${memberCity.trim()}, ${memberState}.`
-    )
-  }
 
   const openThread = async (thread: ForumThread) => {
     setActiveThread(thread)
@@ -304,49 +197,65 @@ export default function ForumClient({
 
   return (
     <div className="space-y-6 sm:space-y-8">
-      {/* Forum Hero Header */}
-      <div className="rounded-2xl bg-[#0D0D10] text-white p-6 sm:p-10 border-b-4 border-[var(--imotora-red)] flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-        <div className="space-y-2 max-w-2xl">
-          <span
-            className="inline-block px-2.5 py-1 rounded text-[10px] font-extrabold uppercase tracking-[0.22em] text-white"
-            style={{ backgroundColor: "var(--imotora-red)" }}
-          >
-            iMotora Paddock Community
-          </span>
-          <h1 className="font-racing text-3xl sm:text-5xl font-black leading-tight">
-            Collector{" "}
-            <span style={{ color: "var(--imotora-red)" }}>Community Forum</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-zinc-300 leading-relaxed">
-            Register your collector or trade profile (Hobbyist, Collector, Wholesaler,
-            Retailer &amp; more), track live community stats across India, and join
-            die-cast &amp; F1 discussions.
-          </p>
+      {/* 1. TOP OF PAGE: Community Member Profile Registration Card */}
+      <section
+        id="join-community"
+        className="bg-white text-zinc-900 rounded-2xl border-2 border-zinc-200 shadow-md overflow-hidden"
+      >
+        <div className="px-5 py-4 sm:px-6 bg-[#0D0D10] text-white border-b-4 border-[var(--imotora-red)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <span
+              className="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-[0.2em] text-white mb-1.5"
+              style={{ backgroundColor: "var(--imotora-red)" }}
+            >
+              iMotora Paddock Community
+            </span>
+            <h1 className="font-racing text-2xl sm:text-3xl font-black leading-tight">
+              Register Your{" "}
+              <span style={{ color: "var(--imotora-red)" }}>Community Profile</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-300 mt-1">
+              Tell us whether you&apos;re a Hobbyist, Collector, Wholesaler, or Retailer —
+              share your phone, email, city, state &amp; interests to join the iMotora network.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0 self-start sm:self-center">
+            <button
+              type="button"
+              onClick={() => setShowProfileForm((v) => !v)}
+              className="imotora-btn-primary px-4 py-2 text-xs"
+            >
+              {showProfileForm ? "Hide Form" : "Fill Community Form →"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowNewModal(true)}
+              className="px-4 py-2 rounded-md bg-white text-[#0D0D10] hover:bg-zinc-100 font-bold text-xs transition-colors"
+            >
+              + Start Discussion
+            </button>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 self-start lg:self-center">
-          <button
-            type="button"
-            onClick={() => {
-              setShowProfileForm((v) => !v)
-              setProfileSuccess(null)
-              setProfileError(null)
-            }}
-            className="imotora-btn-primary px-5 py-2.5 text-xs sm:text-sm shadow-lg"
-          >
-            {showProfileForm ? "Hide Member Form" : "Join Community Profile"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowNewModal(true)}
-            className="px-5 py-2.5 rounded-md bg-white text-[#0D0D10] hover:bg-zinc-100 font-bold text-xs sm:text-sm transition-colors"
-          >
-            + Start Discussion
-          </button>
-        </div>
-      </div>
+        {showProfileForm && (
+          <div className="p-5 sm:p-6">
+            <CommunityProfileForm
+              defaultName={defaultAuthor}
+              defaultEmail={defaultEmail}
+              defaultPhone={defaultPhone}
+              onRegistered={(nextStats, fullName) => {
+                if (nextStats) setStats(nextStats)
+                if (fullName) {
+                  setNewAuthor(fullName)
+                  setReplyAuthor(fullName)
+                }
+              }}
+            />
+          </div>
+        )}
+      </section>
 
-      {/* Live Forum Activity & Member Stats Dashboard */}
+      {/* 2. Live Forum Activity & Member Stats Dashboard */}
       <section className="space-y-4">
         {/* 4 Activity KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -405,7 +314,6 @@ export default function ForumClient({
 
         {/* Category & Interest Breakdown Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Members by Category (Hobbyist, Collector, Wholesaler, etc.) */}
           <div className="bg-white text-zinc-900 rounded-2xl border border-zinc-200 p-5 sm:p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-3">
               <div>
@@ -477,7 +385,6 @@ export default function ForumClient({
             )}
           </div>
 
-          {/* Members by Interests */}
           <div className="bg-white text-zinc-900 rounded-2xl border border-zinc-200 p-5 sm:p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-zinc-100 pb-3">
               <div>
@@ -528,211 +435,8 @@ export default function ForumClient({
         </div>
       </section>
 
-      {/* Community Member Registration Card (Always Easy to Open + Prominent Banner) */}
-      <section className="bg-white text-zinc-900 rounded-2xl border-2 border-zinc-200 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 sm:px-6 bg-zinc-50 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <h2 className="font-racing text-xl sm:text-2xl font-black text-[#0D0D10]">
-              Register Your{" "}
-              <span style={{ color: "var(--imotora-red)" }}>Community Profile</span>
-            </h2>
-            <p className="text-xs text-zinc-600 mt-0.5">
-              Tell us whether you&apos;re a Hobbyist, Collector, Wholesaler, or Retailer —
-              share your city, state &amp; interests to join the iMotora network.
-            </p>
-          </div>
-          {!showProfileForm && (
-            <button
-              type="button"
-              onClick={() => setShowProfileForm(true)}
-              className="imotora-btn-primary px-5 py-2.5 text-xs shrink-0 self-start sm:self-center"
-            >
-              Fill Community Form →
-            </button>
-          )}
-        </div>
-
-        {(showProfileForm || profileSuccess) && (
-          <div className="p-5 sm:p-6">
-            {profileSuccess && (
-              <div className="mb-4 rounded-xl bg-emerald-50 border border-emerald-200 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-800 flex items-center justify-between gap-3">
-                <span>✓ {profileSuccess}</span>
-                <button
-                  type="button"
-                  onClick={() => setProfileSuccess(null)}
-                  className="text-emerald-700 hover:text-emerald-950 font-bold text-base leading-none"
-                >
-                  ×
-                </button>
-              </div>
-            )}
-
-            {profileError && (
-              <div className="mb-4 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-xs sm:text-sm font-semibold text-red-700">
-                {profileError}
-              </div>
-            )}
-
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              {/* Member Category Selector */}
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 mb-2">
-                  I am a... *
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {MEMBER_CATEGORIES.map((cat) => {
-                    const active = memberType === cat
-                    return (
-                      <button
-                        key={cat}
-                        type="button"
-                        onClick={() => setMemberType(cat)}
-                        className={`px-3.5 py-2 rounded-lg text-xs font-bold border transition-all ${
-                          active
-                            ? "text-white border-transparent shadow-sm"
-                            : "bg-zinc-50 text-zinc-800 border-zinc-300 hover:border-[#0D0D10]"
-                        }`}
-                        style={
-                          active
-                            ? { backgroundColor: "var(--imotora-red)" }
-                            : undefined
-                        }
-                      >
-                        {cat}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              {/* Name, Phone, Email */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
-                    Full Name / Business Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={memberName}
-                    onChange={(e) => setMemberName(e.target.value)}
-                    placeholder="e.g. Aarav Kapoor"
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-[var(--imotora-red)]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
-                    Phone Number *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={memberPhone}
-                    onChange={(e) => setMemberPhone(e.target.value)}
-                    placeholder="+91 98765 43210"
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-[var(--imotora-red)]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={memberEmail}
-                    onChange={(e) => setMemberEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-[var(--imotora-red)]"
-                  />
-                </div>
-              </div>
-
-              {/* City & State */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
-                    City *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={memberCity}
-                    onChange={(e) => setMemberCity(e.target.value)}
-                    placeholder="e.g. Mumbai, Bengaluru, Chennai"
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-900 outline-none focus:border-[var(--imotora-red)]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-zinc-700 mb-1">
-                    State *
-                  </label>
-                  <select
-                    required
-                    value={memberState}
-                    onChange={(e) => setMemberState(e.target.value)}
-                    className="w-full rounded-lg border border-zinc-300 px-3 py-2.5 text-sm text-zinc-900 bg-white outline-none focus:border-[var(--imotora-red)]"
-                  >
-                    {INDIAN_STATES.map((st) => (
-                      <option key={st} value={st}>
-                        {st}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Interests Multi-Select */}
-              <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-zinc-700 mb-2">
-                  Your Interests *{" "}
-                  <span className="font-normal normal-case text-zinc-500">
-                    (select all that apply)
-                  </span>
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {INTEREST_OPTIONS.map((interest) => {
-                    const selected = memberInterests.includes(interest)
-                    return (
-                      <button
-                        key={interest}
-                        type="button"
-                        onClick={() => toggleInterest(interest)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
-                          selected
-                            ? "bg-[#0D0D10] text-white border-[#0D0D10]"
-                            : "bg-white text-zinc-700 border-zinc-300 hover:border-[#0D0D10]"
-                        }`}
-                      >
-                        {selected ? "✓ " : "+ "}
-                        {interest}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100">
-                <p className="text-[11px] text-zinc-500">
-                  Your phone &amp; email stay private — only anonymous category &amp; interest
-                  totals appear in public stats.
-                </p>
-                <button
-                  type="submit"
-                  disabled={submittingProfile}
-                  className="imotora-btn-primary px-6 py-2.5 text-xs sm:text-sm"
-                >
-                  {submittingProfile ? "Saving Profile..." : "Join iMotora Community →"}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-      </section>
-
-      {/* Main Forum Discussions Layout */}
+      {/* 3. Main Forum Discussions Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-start">
-        {/* Category Filter (Compact Chips on Mobile, Sidebar on Desktop) */}
         <aside className="lg:col-span-3 bg-white text-zinc-900 rounded-2xl border border-zinc-200 p-4 space-y-3 shadow-sm">
           <input
             type="search"
@@ -768,7 +472,6 @@ export default function ForumClient({
           </div>
         </aside>
 
-        {/* Thread Feed */}
         <div className="lg:col-span-9 space-y-3">
           {filteredThreads.map((thread) => (
             <div
@@ -776,7 +479,6 @@ export default function ForumClient({
               onClick={() => openThread(thread)}
               className="cursor-pointer bg-white text-zinc-900 rounded-xl border border-zinc-200 hover:border-[var(--imotora-red)] p-4 sm:p-5 shadow-sm hover:shadow-md transition-all flex gap-3 sm:gap-4 items-start"
             >
-              {/* Upvote Column */}
               <button
                 type="button"
                 onClick={(e) => handleUpvote(e, thread.id)}
@@ -787,7 +489,6 @@ export default function ForumClient({
                 <span className="text-xs font-extrabold mt-0.5">{thread.upvotes}</span>
               </button>
 
-              {/* Thread Content */}
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 text-[11px]">
                   {thread.pinned && (
@@ -1020,7 +721,6 @@ export default function ForumClient({
               </div>
             </div>
 
-            {/* Reply Composer */}
             <form
               onSubmit={handlePostReply}
               className="p-4 bg-zinc-50 border-t border-zinc-200 space-y-2.5"
