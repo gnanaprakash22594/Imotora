@@ -414,6 +414,23 @@ const SEED_THREADS = [
   },
 ]
 
+const SEED_MEMBERS = [
+  { full_name: "Arjun Verma", member_type: "Collector", phone: "+91 98201 11223", email: "arjun.verma@example.in", city: "Mumbai", state: "Maharashtra", interests: ["1:64 Die-Cast", "1:43 F1 & Motorsport", "LED Displays & Dioramas"] },
+  { full_name: "Kabir Singhania", member_type: "Hobbyist", phone: "+91 98111 22334", email: "kabir.s@example.in", city: "New Delhi", state: "Delhi", interests: ["1:64 Die-Cast", "Racing Tracks"] },
+  { full_name: "Siddharth Rao", member_type: "Collector", phone: "+91 98450 33445", email: "siddharth.rao@example.in", city: "Bengaluru", state: "Karnataka", interests: ["1:43 F1 & Motorsport", "1:18 Scale Models"] },
+  { full_name: "Meera Nair", member_type: "Hobbyist", phone: "+91 98400 44556", email: "meera.nair@example.in", city: "Chennai", state: "Tamil Nadu", interests: ["1:43 F1 & Motorsport", "Vintage & Classics"] },
+  { full_name: "Rajeshwari Auto Toys", member_type: "Wholesaler", phone: "+91 98220 55667", email: "sales@rajeshwariauto.in", city: "Pune", state: "Maharashtra", interests: ["1:64 Die-Cast", "Bulk / Wholesale", "Racing Tracks"] },
+  { full_name: "Devansh Patel", member_type: "Retailer", phone: "+91 98250 66778", email: "devansh.patel@example.in", city: "Ahmedabad", state: "Gujarat", interests: ["1:64 Die-Cast", "Bulk / Wholesale", "LED Displays & Dioramas"] },
+  { full_name: "Riya Malhotra", member_type: "Collector", phone: "+91 98180 77889", email: "riya.m@example.in", city: "Gurugram", state: "Haryana", interests: ["1:43 F1 & Motorsport", "1:18 Scale Models", "LED Displays & Dioramas"] },
+  { full_name: "Nikhil Joshi", member_type: "Track Builder", phone: "+91 98230 88990", email: "nikhil.joshi@example.in", city: "Pune", state: "Maharashtra", interests: ["Racing Tracks", "LED Displays & Dioramas", "1:64 Die-Cast"] },
+  { full_name: "Karan Gill", member_type: "Reseller / Trader", phone: "+91 98140 99001", email: "karan.gill@example.in", city: "Chandigarh", state: "Chandigarh", interests: ["1:64 Die-Cast", "Vintage & Classics", "Bulk / Wholesale"] },
+  { full_name: "ScaleCraft Distributors", member_type: "Wholesaler", phone: "+91 98490 10112", email: "orders@scalecraft.in", city: "Hyderabad", state: "Telangana", interests: ["Bulk / Wholesale", "1:64 Die-Cast", "1:43 F1 & Motorsport"] },
+  { full_name: "Ananya Chatterjee", member_type: "Hobbyist", phone: "+91 98300 12134", email: "ananya.c@example.in", city: "Kolkata", state: "West Bengal", interests: ["1:64 Die-Cast", "Vintage & Classics"] },
+  { full_name: "Vikram Menon", member_type: "Collector", phone: "+91 98470 14156", email: "vikram.menon@example.in", city: "Kochi", state: "Kerala", interests: ["1:18 Scale Models", "1:43 F1 & Motorsport"] },
+  { full_name: "Apex Hobby Store", member_type: "Retailer", phone: "+91 98455 16178", email: "hello@apexhobby.in", city: "Bengaluru", state: "Karnataka", interests: ["Bulk / Wholesale", "Racing Tracks", "LED Displays & Dioramas"] },
+  { full_name: "Rohan Deshmukh", member_type: "Hobbyist", phone: "+91 98205 18190", email: "rohan.d@example.in", city: "Mumbai", state: "Maharashtra", interests: ["1:64 Die-Cast", "1:43 F1 & Motorsport", "Racing Tracks"] },
+]
+
 export async function ensureCommunityDb(): Promise<Pool> {
   const pool = getPool()
   if (initialized) return pool
@@ -463,6 +480,20 @@ export async function ensureCommunityDb(): Promise<Pool> {
     );
   `)
 
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS imotora_community_members (
+      id SERIAL PRIMARY KEY,
+      full_name TEXT NOT NULL,
+      member_type TEXT NOT NULL DEFAULT 'Hobbyist',
+      phone TEXT NOT NULL DEFAULT '',
+      email TEXT NOT NULL UNIQUE,
+      city TEXT NOT NULL DEFAULT '',
+      state TEXT NOT NULL DEFAULT '',
+      interests TEXT[] NOT NULL DEFAULT '{}',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `)
+
   // Upsert latest F1 Encyclopedia entries (Racers, Teams, Cars) + Blog stories
   for (const a of SEED_ARTICLES) {
     await pool.query(
@@ -506,7 +537,89 @@ export async function ensureCommunityDb(): Promise<Pool> {
     }
   }
 
+  // Seed community member profiles if empty
+  const { rows: memCount } = await pool.query(`SELECT COUNT(*)::int AS cnt FROM imotora_community_members`)
+  if ((memCount[0]?.cnt ?? 0) === 0) {
+    for (const m of SEED_MEMBERS) {
+      await pool.query(
+        `INSERT INTO imotora_community_members (full_name, member_type, phone, email, city, state, interests)
+         VALUES ($1,$2,$3,$4,$5,$6,$7)
+         ON CONFLICT (email) DO NOTHING`,
+        [m.full_name, m.member_type, m.phone, m.email, m.city, m.state, m.interests]
+      )
+    }
+  }
+
   initialized = true
   return pool
+}
+
+export async function getCommunityStatsFromDb() {
+  const pool = await ensureCommunityDb()
+
+  const [memberTotals, forumTotals, byCategoryRes, byInterestRes, byStateRes, forumByCatRes] =
+    await Promise.all([
+      pool.query(`
+        SELECT
+          COUNT(*)::int AS total_members,
+          COUNT(DISTINCT NULLIF(TRIM(state), ''))::int AS states_count,
+          COUNT(DISTINCT NULLIF(TRIM(city), ''))::int AS cities_count
+        FROM imotora_community_members
+      `),
+      pool.query(`
+        SELECT
+          (SELECT COUNT(*)::int FROM imotora_forum_threads) AS total_threads,
+          (SELECT COUNT(*)::int FROM imotora_forum_replies) AS total_replies,
+          (SELECT COALESCE(SUM(upvotes), 0)::int FROM imotora_forum_threads) AS total_upvotes
+      `),
+      pool.query(`
+        SELECT member_type AS label, COUNT(*)::int AS count
+        FROM imotora_community_members
+        GROUP BY member_type
+        ORDER BY count DESC, member_type ASC
+      `),
+      pool.query(`
+        SELECT interest AS label, COUNT(*)::int AS count
+        FROM imotora_community_members, UNNEST(interests) AS interest
+        GROUP BY interest
+        ORDER BY count DESC, interest ASC
+      `),
+      pool.query(`
+        SELECT state AS label, COUNT(*)::int AS count
+        FROM imotora_community_members
+        WHERE TRIM(state) <> ''
+        GROUP BY state
+        ORDER BY count DESC, state ASC
+        LIMIT 8
+      `),
+      pool.query(`
+        SELECT t.category AS label,
+               COUNT(DISTINCT t.id)::int AS threads,
+               COUNT(r.id)::int AS replies
+        FROM imotora_forum_threads t
+        LEFT JOIN imotora_forum_replies r ON r.thread_id = t.id
+        GROUP BY t.category
+        ORDER BY threads DESC, t.category ASC
+      `),
+    ])
+
+  return {
+    activity: {
+      totalMembers: memberTotals.rows[0]?.total_members ?? 0,
+      statesCount: memberTotals.rows[0]?.states_count ?? 0,
+      citiesCount: memberTotals.rows[0]?.cities_count ?? 0,
+      totalThreads: forumTotals.rows[0]?.total_threads ?? 0,
+      totalReplies: forumTotals.rows[0]?.total_replies ?? 0,
+      totalUpvotes: forumTotals.rows[0]?.total_upvotes ?? 0,
+    },
+    byCategory: byCategoryRes.rows as { label: string; count: number }[],
+    byInterest: byInterestRes.rows as { label: string; count: number }[],
+    byState: byStateRes.rows as { label: string; count: number }[],
+    forumByCategory: forumByCatRes.rows as {
+      label: string
+      threads: number
+      replies: number
+    }[],
+  }
 }
 

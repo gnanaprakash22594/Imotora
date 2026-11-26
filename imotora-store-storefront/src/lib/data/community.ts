@@ -41,6 +41,21 @@ export type ForumReply = {
   created_at: string
 }
 
+export type CommunityStats = {
+  activity: {
+    totalMembers: number
+    statesCount: number
+    citiesCount: number
+    totalThreads: number
+    totalReplies: number
+    totalUpvotes: number
+  }
+  byCategory: { label: string; count: number }[]
+  byInterest: { label: string; count: number }[]
+  byState: { label: string; count: number }[]
+  forumByCategory: { label: string; threads: number; replies: number }[]
+}
+
 export async function listArticles(params?: {
   type?: "blog" | "encyclopedia"
   category?: string
@@ -168,6 +183,41 @@ export async function upvoteForumThread(threadId: number): Promise<number | null
     return res.thread?.upvotes ?? null
   } catch {
     return null
+  }
+}
+
+export async function getCommunityStats(): Promise<CommunityStats | null> {
+  try {
+    const res = await sdk.client.fetch<{ stats: CommunityStats }>(
+      `/store/community/members`,
+      { method: "GET", cache: "no-store" }
+    )
+    return res.stats || null
+  } catch {
+    return null
+  }
+}
+
+export async function registerCommunityMember(input: {
+  full_name: string
+  member_type: string
+  phone: string
+  email: string
+  city: string
+  state: string
+  interests: string[]
+}): Promise<{ ok: boolean; stats?: CommunityStats; error?: string }> {
+  try {
+    const res = await sdk.client.fetch<{ stats: CommunityStats }>(
+      `/store/community/members`,
+      { method: "POST", body: input }
+    )
+    return { ok: true, stats: res.stats }
+  } catch (err: any) {
+    return {
+      ok: false,
+      error: err?.message || "Failed to save community profile",
+    }
   }
 }
 
